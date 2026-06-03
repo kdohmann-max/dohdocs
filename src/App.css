@@ -1,0 +1,468 @@
+.app {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ---- Sidebar ---- */
+.sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  background: var(--bg);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.brand {
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.head-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.new-doc,
+.theme-toggle {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 16px;
+  line-height: 1;
+}
+
+/* ---- Sidebar controls (search + sort) ---- */
+.sidebar-controls {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-alt);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+}
+
+.sort-control {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sort-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.sort-control select {
+  flex: 1;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+}
+
+.doc-list {
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.doc-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.doc-list li:hover {
+  background: var(--bg-alt);
+}
+
+.doc-list li.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.doc-list .doc-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.doc-list .del {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 16px;
+  opacity: 0;
+}
+
+.doc-list li:hover .del {
+  opacity: 1;
+}
+
+.doc-list .empty {
+  color: var(--muted);
+  font-size: 13px;
+  padding: 12px 10px;
+}
+
+/* ---- Main / Editor ---- */
+.main {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.editor {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+/* ---- View toggle (Rich / Markdown source) ---- */
+.view-toggle {
+  position: sticky;
+  top: 0;
+  z-index: 11;
+  display: flex;
+  gap: 4px;
+  padding: 8px 16px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+
+.view-toggle button {
+  border: 1px solid var(--border);
+  background: var(--bg);
+  border-radius: 6px;
+  padding: 4px 12px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.view-toggle button.active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.share-wrap {
+  position: relative;
+  margin-left: auto;
+}
+
+.share-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  min-width: 160px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+
+.share-menu button {
+  border: none;
+  background: var(--bg);
+  color: var(--text);
+  text-align: left;
+  padding: 9px 14px;
+  border-radius: 0;
+}
+
+.share-menu button:hover {
+  background: var(--accent-soft);
+}
+
+.source-surface {
+  flex: 1;
+  width: 100%;
+  max-width: 792px;
+  margin: 0 auto;
+  border: none;
+  outline: none;
+  resize: none;
+  padding: 32px 16px 96px;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* ---- Toolbar ---- */
+.toolbar {
+  position: sticky;
+  top: 41px;
+  z-index: 10;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+
+.ribbon {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+}
+
+.sub-ribbon {
+  border-top: 1px solid var(--border);
+  background: var(--bg-alt);
+}
+
+.control {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.control-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.control select {
+  padding: 5px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+}
+
+.inline-marks {
+  flex-direction: row;
+  gap: 4px;
+  align-self: flex-end;
+}
+
+.ribbon button {
+  border: 1px solid var(--border);
+  background: var(--bg);
+  border-radius: 6px;
+  padding: 6px 10px;
+  min-width: 34px;
+}
+
+.ribbon button.active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.f-button {
+  font-weight: 700;
+  font-style: italic;
+  align-self: flex-end;
+}
+
+.archive-btn {
+  margin-left: auto;
+  align-self: flex-end;
+}
+
+/* ---- Editor surface ---- */
+.editor-surface {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  padding: 32px 16px 96px;
+}
+
+.editor-surface .ProseMirror {
+  width: 100%;
+  max-width: 760px;
+  outline: none;
+  line-height: 1.35;
+  font-size: 16px;
+}
+
+/* Tighten vertical rhythm between blocks. */
+.ProseMirror p {
+  margin: 0.25em 0;
+}
+
+.ProseMirror ul,
+.ProseMirror ol {
+  margin: 0.25em 0;
+}
+
+.ProseMirror li {
+  margin: 0.1em 0;
+}
+
+.ProseMirror li > p {
+  margin: 0;
+}
+
+.ProseMirror h1,
+.ProseMirror h2,
+.ProseMirror h3,
+.ProseMirror h4 {
+  margin: 0.6em 0 0.3em;
+}
+
+.ProseMirror:focus {
+  outline: none;
+}
+
+.ProseMirror h1,
+.ProseMirror h2,
+.ProseMirror h3,
+.ProseMirror h4 {
+  font-variant: small-caps;
+  letter-spacing: 0.015em;
+}
+
+.ProseMirror h1 {
+  font-size: 2em;
+}
+.ProseMirror h2 {
+  font-size: 1.6em;
+}
+.ProseMirror h3 {
+  font-size: 1.3em;
+}
+.ProseMirror h4 {
+  font-size: 1.1em;
+}
+
+.ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: var(--muted);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+/* Nested-list emphasis: when an initial-level list item has nested children,
+   bold that parent item's own line only. `:not(li li)` restricts this to the
+   first level — deeper items (and the children themselves) stay unformatted. */
+.ProseMirror li:not(li li):has(> ul, > ol) > p {
+  font-weight: 700;
+  font-variant: small-caps;
+  letter-spacing: 0.015em;
+  font-size: 1.3em;
+}
+
+/* Task items hold their content (and any nested list) inside a <div>. */
+.ProseMirror li:not(li li):has(> div > ul, > div > ol) > div > p:first-child {
+  font-weight: 700;
+  font-variant: small-caps;
+  letter-spacing: 0.015em;
+  font-size: 1.3em;
+}
+
+/* Inline images: cap at 350px, shrink with the window. */
+.ProseMirror img {
+  max-width: 350px;
+  width: 100%;
+  height: auto;
+  border-radius: 4px;
+  vertical-align: bottom;
+}
+
+.ProseMirror img.ProseMirror-selectednode {
+  outline: 2px solid var(--accent);
+}
+
+/* Task lists */
+ul[data-type="taskList"] {
+  list-style: none;
+  padding-left: 0;
+}
+
+ul[data-type="taskList"] li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+ul[data-type="taskList"] li > label {
+  margin-top: 4px;
+}
+
+ul[data-type="taskList"] li > div {
+  flex: 1;
+}
+
+.unarchive-btn {
+  border: 1px solid var(--border);
+  background: var(--bg);
+  border-radius: 4px;
+  font-size: 12px;
+  padding: 0 6px;
+  margin-right: 6px;
+  color: var(--accent);
+}
+
+/* ---- Responsive: phones / tablets ---- */
+@media (max-width: 720px) {
+  .sidebar {
+    width: 64px;
+  }
+  .brand {
+    display: none;
+  }
+  .sidebar-controls {
+    display: none;
+  }
+  .doc-list .doc-title {
+    display: none;
+  }
+  .doc-list li {
+    justify-content: center;
+  }
+  .ribbon {
+    padding: 6px 8px;
+  }
+  .editor-surface {
+    padding: 16px 12px 80px;
+  }
+}
+
+.empty-main {
+  margin: auto;
+  color: var(--muted);
+}

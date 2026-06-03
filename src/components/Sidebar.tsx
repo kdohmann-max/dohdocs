@@ -17,6 +17,8 @@ interface Props {
   onSelect: (id: string) => void;
   onCreate: () => void;
   onDelete: (id: string) => void;
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
 export function Sidebar({
@@ -31,9 +33,11 @@ export function Sidebar({
   onSelect,
   onCreate,
   onDelete,
+  isOpen,
+  onClose,
 }: Props) {
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar${isOpen ? " open" : ""}`}>
       <div className="sidebar-head">
         <span className="brand">DohDocs</span>
         <div className="head-actions">
@@ -46,6 +50,9 @@ export function Sidebar({
           </button>
           <button className="new-doc" onClick={onCreate} title="New document">
             +
+          </button>
+          <button className="sidebar-close" onClick={onClose} title="Close menu">
+            ✕
           </button>
         </div>
       </div>

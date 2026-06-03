@@ -437,26 +437,76 @@ ul[data-type="taskList"] li > div {
   color: var(--accent);
 }
 
+/* ---- Hamburger button: hidden on desktop ---- */
+.menu-btn {
+  display: none;
+}
+
+/* ---- Sidebar close button: hidden on desktop ---- */
+.sidebar-close {
+  display: none;
+}
+
 /* ---- Responsive: phones / tablets ---- */
 @media (max-width: 720px) {
+  /* Sidebar becomes a fixed slide-in drawer */
   .sidebar {
-    width: 64px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 80vw;
+    max-width: 300px;
+    z-index: 50;
+    transform: translateX(-100%);
+    transition: transform 0.22s ease;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.25);
   }
-  .brand {
-    display: none;
+
+  .sidebar.open {
+    transform: translateX(0);
   }
-  .sidebar-controls {
-    display: none;
+
+  /* Backdrop that closes the drawer on tap */
+  .sidebar-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 49;
   }
-  .doc-list .doc-title {
-    display: none;
-  }
-  .doc-list li {
+
+  /* Show hamburger and close buttons on mobile */
+  .menu-btn {
+    display: flex;
+    align-items: center;
     justify-content: center;
+    width: 32px;
+    height: 28px;
+    font-size: 20px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg);
+    padding: 0;
+    margin-right: 4px;
   }
+
+  .sidebar-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg);
+    font-size: 18px;
+    padding: 0;
+  }
+
   .ribbon {
     padding: 6px 8px;
   }
+
   .editor-surface {
     padding: 16px 12px 80px;
   }

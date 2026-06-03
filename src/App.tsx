@@ -26,6 +26,7 @@ export default function App() {
   const [docs, setDocs] = useState<DocMeta[]>([]);
   const [active, setActive] = useState<DohDoc | null>(null);
   const [search, setSearch] = useState("");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sort, setSort] = useState<SortMode>(
     () => (localStorage.getItem("dohdocs-sort") as SortMode) || "edited"
   );
@@ -83,6 +84,7 @@ export default function App() {
 
   async function handleSelect(id: string) {
     setActive((await getDoc(id)) ?? null);
+    setSidebarOpen(false);
   }
 
   async function handleCreate() {
@@ -121,6 +123,9 @@ export default function App() {
 
   return (
     <div className="app">
+      {sidebarOpen && (
+        <div className="sidebar-backdrop" onClick={() => setSidebarOpen(false)} />
+      )}
       <Sidebar
         docs={sortedDocs}
         activeId={active?.id ?? null}
@@ -133,10 +138,12 @@ export default function App() {
         onSelect={handleSelect}
         onCreate={handleCreate}
         onDelete={handleDelete}
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
       />
       <main className="main">
         {active ? (
-          <Editor key={active.id} doc={active} onChange={handleChange} />
+          <Editor key={active.id} doc={active} onChange={handleChange} onOpenSidebar={() => setSidebarOpen(true)} />
         ) : (
           <div className="empty-main">Create a document to get started.</div>
         )}

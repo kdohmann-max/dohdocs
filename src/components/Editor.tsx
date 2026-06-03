@@ -16,9 +16,10 @@ import type { DohDoc } from "../storage/db";
 interface Props {
   doc: DohDoc;
   onChange: (markdown: string) => void;
+  onOpenSidebar?: () => void;
 }
 
-export function Editor({ doc, onChange }: Props) {
+export function Editor({ doc, onChange, onOpenSidebar }: Props) {
   const saveTimer = useRef<number | undefined>(undefined);
   const [sourceMode, setSourceMode] = useState(false);
   const [source, setSource] = useState(doc.markdown);
@@ -91,6 +92,7 @@ export function Editor({ doc, onChange }: Props) {
   return (
     <div className="editor">
       <div className="view-toggle">
+        <button className="menu-btn" onClick={onOpenSidebar} title="Open menu">☰</button>
         <button
           className={!sourceMode ? "active" : ""}
           onClick={() => (sourceMode ? exitSource() : undefined)}

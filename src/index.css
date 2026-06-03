@@ -39,4 +39,10 @@ body {
 button {
   font: inherit;
   cursor: pointer;
+  color: inherit;
+}
+
+select {
+  font: inherit;
+  color: var(--text);
 }

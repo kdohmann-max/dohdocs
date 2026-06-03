@@ -180,6 +180,13 @@
   color: var(--accent);
 }
 
+.print-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 8px;
+}
+
 .share-wrap {
   position: relative;
   margin-left: auto;
@@ -294,6 +301,13 @@
 .f-button {
   font-weight: 700;
   font-style: italic;
+  align-self: flex-end;
+}
+
+.image-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   align-self: flex-end;
 }
 

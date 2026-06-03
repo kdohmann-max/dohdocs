@@ -105,11 +105,9 @@ export default function App() {
     if (initialized.current) return;
     initialized.current = true;
     void (async () => {
-      const list = await listDocs();
-      setDocs(list);
-      if (list.length > 0) {
-        setActive((await getDoc(list[0].id)) ?? null);
-      } else {
+      // Seed the example note once, regardless of existing docs.
+      if (!localStorage.getItem("dohdocs-example-seeded")) {
+        localStorage.setItem("dohdocs-example-seeded", "1");
         const doc = await createDoc();
         const seeded = {
           ...doc,
@@ -117,9 +115,11 @@ export default function App() {
           markdown: EXAMPLE_NOTE,
         };
         await saveDoc(seeded);
-        setActive(seeded);
-        setDocs(await listDocs());
       }
+
+      const list = await listDocs();
+      setDocs(list);
+      setActive((await getDoc(list[0].id)) ?? null);
     })();
   }, []);
 

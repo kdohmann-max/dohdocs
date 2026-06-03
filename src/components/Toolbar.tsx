@@ -136,7 +136,9 @@ export function Toolbar({ editor }: Props) {
           onClick={() => fileInput.current?.click()}
           title="Insert image"
         >
-          🖼
+          <svg width="16" height="16" aria-hidden="true">
+            <use href="/icons.svg#paperclip-icon" />
+          </svg>
         </button>
         <input
           ref={fileInput}

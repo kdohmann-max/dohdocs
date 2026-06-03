@@ -1,8 +1,13 @@
-// Local document storage backed by IndexedDB (via the `idb` package).
-// This module is the only place the UI touches persistence — swapping in a
-// sync/collaboration backend later stays isolated here.
+// Document storage backed by Supabase (Postgres).
+// This module is the only place the UI touches persistence — swapping backends
+// stays isolated here. The public interface is unchanged from the IndexedDB version.
 
-import { openDB, type IDBPDatabase } from "idb";
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL as string,
+  import.meta.env.VITE_SUPABASE_ANON_KEY as string
+);
 
 export interface DocMeta {
   id: string;
@@ -15,36 +20,35 @@ export interface DohDoc extends DocMeta {
   markdown: string;
 }
 
-const DB_NAME = "dohdocs";
-const STORE = "docs";
+// DB rows use snake_case; map to/from the camelCase interface the UI expects.
+type Row = { id: string; title: string; markdown: string; updated_at: number };
 
-let _db: Promise<IDBPDatabase> | null = null;
+function rowToMeta(row: Row): DocMeta {
+  return { id: row.id, title: row.title, updatedAt: row.updated_at };
+}
 
-function getDB() {
-  if (!_db) {
-    _db = openDB(DB_NAME, 1, {
-      upgrade(db) {
-        db.createObjectStore(STORE, { keyPath: "id" });
-      },
-    });
-  }
-  return _db;
+function rowToDoc(row: Row): DohDoc {
+  return { id: row.id, title: row.title, markdown: row.markdown, updatedAt: row.updated_at };
+}
+
+function docToRow(doc: DohDoc): Row {
+  return { id: doc.id, title: doc.title, markdown: doc.markdown, updated_at: doc.updatedAt };
 }
 
 export async function listDocs(query = ""): Promise<DocMeta[]> {
-  const db = await getDB();
-  const all = (await db.getAll(STORE)) as DohDoc[];
-  const q = query.trim().toLowerCase();
-  const filtered = q
-    ? all.filter(
-        (d) =>
-          d.title.toLowerCase().includes(q) ||
-          d.markdown.toLowerCase().includes(q)
-      )
-    : all;
-  return filtered
-    .sort((a, b) => b.updatedAt - a.updatedAt)
-    .map(({ id, title, updatedAt }) => ({ id, title, updatedAt }));
+  const q = query.trim();
+  let req = supabase
+    .from("notes")
+    .select("id, title, updated_at")
+    .order("updated_at", { ascending: false });
+
+  if (q) {
+    req = req.or(`title.ilike.%${q}%,markdown.ilike.%${q}%`);
+  }
+
+  const { data, error } = await req;
+  if (error) throw error;
+  return (data as Row[]).map(rowToMeta);
 }
 
 /** Convert an image file to a base64 data URL so it can be embedded inline. */
@@ -58,18 +62,23 @@ export function uploadImage(file: File): Promise<string> {
 }
 
 export async function getDoc(id: string): Promise<DohDoc | undefined> {
-  const db = await getDB();
-  return db.get(STORE, id);
+  const { data, error } = await supabase
+    .from("notes")
+    .select("*")
+    .eq("id", id)
+    .single();
+  if (error) return undefined;
+  return rowToDoc(data as Row);
 }
 
 export async function saveDoc(doc: DohDoc): Promise<void> {
-  const db = await getDB();
-  await db.put(STORE, doc);
+  const { error } = await supabase.from("notes").upsert(docToRow(doc));
+  if (error) throw error;
 }
 
 export async function deleteDoc(id: string): Promise<void> {
-  const db = await getDB();
-  await db.delete(STORE, id);
+  const { error } = await supabase.from("notes").delete().eq("id", id);
+  if (error) throw error;
 }
 
 export async function createDoc(): Promise<DohDoc> {
@@ -79,7 +88,7 @@ export async function createDoc(): Promise<DohDoc> {
     markdown: "",
     updatedAt: Date.now(),
   };
-  const db = await getDB();
-  await db.put(STORE, doc);
+  const { error } = await supabase.from("notes").insert(docToRow(doc));
+  if (error) throw error;
   return doc;
 }

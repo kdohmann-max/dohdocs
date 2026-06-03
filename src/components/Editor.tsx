@@ -108,6 +108,16 @@ export function Editor({ doc, onChange, onOpenSidebar }: Props) {
           {"</> MD"}
         </button>
 
+        <button
+          className="print-btn"
+          onClick={sharePdf}
+          title="Print / Save as PDF"
+        >
+          <svg width="16" height="16" aria-hidden="true">
+            <use href="/icons.svg#printer-icon" />
+          </svg>
+        </button>
+
         <div className="share-wrap">
           <button
             className={`share-btn ${shareOpen ? "active" : ""}`}

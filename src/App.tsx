@@ -13,6 +13,66 @@ import {
 } from "./storage/db";
 import "./App.css";
 
+const EXAMPLE_NOTE = `# DohDocs Formatting Guide
+
+A complete tour of every formatting type the editor supports.
+
+## Headings
+
+### Heading 3
+
+#### Heading 4
+
+## Text Styles
+
+Regular paragraph text. **Bold** and *italic* can be applied from the toolbar or with standard keyboard shortcuts.
+
+==Highlighted text== gets a yellow background from the Highlight extension.
+
+> Blockquotes set off a callout or pulled quote — great for notes-within-notes.
+
+## Priority Marks
+
+Apply these with the **F** button in the toolbar:
+
+<span data-fmt="p1" class="fmt-p1">P1 — red background, highest priority</span>
+
+<span data-fmt="p2" class="fmt-p2">P2 — yellow background, medium priority</span>
+
+<span data-fmt="p3" class="fmt-p3">P3 — blue background, lower priority</span>
+
+<span data-fmt="comment" class="fmt-comment">This is a comment — italic with quotation marks</span>
+
+## Lists
+
+### Bullet List
+
+- First item
+- Second item
+- Third item with **bold** text inside
+
+### Numbered List
+
+1. Step one
+2. Step two
+3. Step three
+
+### Task List
+
+- [ ] Unchecked task
+- [x] Completed task
+- [ ] Another open task
+
+### Nested List (parent items auto-bold)
+
+- Design
+  - Create wireframes
+  - Review with team
+- Development
+  - Implement feature
+  - Write tests
+`;
+
 /** Derive a document title from its first heading or first line of text. */
 function deriveTitle(markdown: string): string {
   for (const raw of markdown.split("\n")) {
@@ -51,7 +111,13 @@ export default function App() {
         setActive((await getDoc(list[0].id)) ?? null);
       } else {
         const doc = await createDoc();
-        setActive(doc);
+        const seeded = {
+          ...doc,
+          title: deriveTitle(EXAMPLE_NOTE),
+          markdown: EXAMPLE_NOTE,
+        };
+        await saveDoc(seeded);
+        setActive(seeded);
         setDocs(await listDocs());
       }
     })();

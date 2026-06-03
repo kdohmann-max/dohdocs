@@ -22,7 +22,7 @@ export function buildExtensions() {
     TaskList,
     TaskItem.configure({ nested: true }),
     Highlight,
-    Image.configure({ inline: true, allowBase64: false }),
+    Image.configure({ inline: true, allowBase64: true }),
     FormatSelector,
     AutoTask,
     HeadingFormat,

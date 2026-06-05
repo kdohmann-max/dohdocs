@@ -1,15 +1,23 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Sidebar, type SortMode } from "./components/Sidebar";
 import { Editor } from "./components/Editor";
-import { useTheme } from "./theme";
+import { AuthProvider, useAuth } from "./auth/AuthContext";
+import { LoginPage } from "./auth/LoginPage";
+import { AdminDashboard } from "./admin/AdminDashboard";
 import {
   type DocMeta,
   type DohDoc,
+  type Folder,
   createDoc,
   deleteDoc,
   getDoc,
   listDocs,
   saveDoc,
+  listFolders,
+  createFolder,
+  renameFolder,
+  deleteFolder,
+  moveDoc,
 } from "./storage/db";
 import "./App.css";
 
@@ -73,7 +81,6 @@ Apply these with the **F** button in the toolbar:
   - Write tests
 `;
 
-/** Derive a document title from its first heading or first line of text. */
 function deriveTitle(markdown: string): string {
   for (const raw of markdown.split("\n")) {
     const line = raw.replace(/^#+\s*/, "").trim();
@@ -82,19 +89,22 @@ function deriveTitle(markdown: string): string {
   return "Untitled";
 }
 
-export default function App() {
+function AppInner() {
+  const { session, profile } = useAuth();
   const [docs, setDocs] = useState<DocMeta[]>([]);
+  const [folders, setFolders] = useState<Folder[]>([]);
   const [active, setActive] = useState<DohDoc | null>(null);
   const [search, setSearch] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [adminOpen, setAdminOpen] = useState(false);
   const [sort, setSort] = useState<SortMode>(
     () => (localStorage.getItem("dohdocs-sort") as SortMode) || "edited"
   );
-  const { theme, toggle: toggleTheme } = useTheme();
   const initialized = useRef(false);
   const loadSeq = useRef(0);
 
-  // Latest-wins: ignore a slow response if a newer load started meanwhile.
+  const ownerId = session?.user.id ?? null;
+
   const loadDocs = useCallback(async (q = search) => {
     const seq = ++loadSeq.current;
     const list = await listDocs(q);
@@ -105,25 +115,22 @@ export default function App() {
     if (initialized.current) return;
     initialized.current = true;
     void (async () => {
-      // Seed the example note once, regardless of existing docs.
       if (!localStorage.getItem("dohdocs-example-seeded")) {
         localStorage.setItem("dohdocs-example-seeded", "1");
-        const doc = await createDoc();
-        const seeded = {
-          ...doc,
-          title: deriveTitle(EXAMPLE_NOTE),
-          markdown: EXAMPLE_NOTE,
-        };
+        const doc = await createDoc(null, ownerId);
+        const seeded = { ...doc, title: deriveTitle(EXAMPLE_NOTE), markdown: EXAMPLE_NOTE };
         await saveDoc(seeded);
       }
 
-      const list = await listDocs();
+      const [list, folderList] = await Promise.all([listDocs(), listFolders()]);
       setDocs(list);
-      setActive((await getDoc(list[0].id)) ?? null);
+      setFolders(folderList);
+      if (list.length) setActive((await getDoc(list[0].id)) ?? null);
     })();
+  // ownerId is stable for the lifetime of a session; exclude to avoid re-seeding
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Debounced search.
   useEffect(() => {
     if (!initialized.current) return;
     const t = setTimeout(() => void loadDocs(search), 250);
@@ -137,11 +144,7 @@ export default function App() {
   const sortedDocs = useMemo(() => {
     const list = [...docs];
     if (sort === "name") {
-      list.sort((a, b) =>
-        (a.title || "Untitled").localeCompare(b.title || "Untitled", undefined, {
-          sensitivity: "base",
-        })
-      );
+      list.sort((a, b) => (a.title || "Untitled").localeCompare(b.title || "Untitled", undefined, { sensitivity: "base" }));
     } else {
       list.sort((a, b) => b.updatedAt - a.updatedAt);
     }
@@ -153,9 +156,30 @@ export default function App() {
     setSidebarOpen(false);
   }
 
-  async function handleCreate() {
-    const doc = await createDoc();
+  async function handleCreateInFolder(folderId: string | null) {
+    const doc = await createDoc(folderId, ownerId);
     setActive(doc);
+    await loadDocs();
+  }
+
+  async function handleCreateFolder(name: string, parentId: string | null) {
+    await createFolder(name, parentId, ownerId);
+    setFolders(await listFolders());
+  }
+
+  async function handleRenameFolder(id: string, name: string) {
+    await renameFolder(id, name);
+    setFolders(await listFolders());
+  }
+
+  async function handleDeleteFolder(id: string) {
+    await deleteFolder(id);
+    setFolders(await listFolders());
+    await loadDocs();
+  }
+
+  async function handleMoveDoc(docId: string, folderId: string | null) {
+    await moveDoc(docId, folderId);
     await loadDocs();
   }
 
@@ -170,11 +194,12 @@ export default function App() {
   }
 
   const handleChange = useCallback(
-    async (markdown: string) => {
+    async (markdown: string, ydocState: string | null = null) => {
       if (!active) return;
       const updated: DohDoc = {
         ...active,
         markdown,
+        ydocState,
         title: deriveTitle(markdown),
         updatedAt: Date.now(),
       };
@@ -189,23 +214,29 @@ export default function App() {
 
   return (
     <div className="app">
-      {sidebarOpen && (
-        <div className="sidebar-backdrop" onClick={() => setSidebarOpen(false)} />
+      {sidebarOpen && <div className="sidebar-backdrop" onClick={() => setSidebarOpen(false)} />}
+      {adminOpen && profile?.role === "admin" && (
+        <AdminDashboard onClose={() => setAdminOpen(false)} />
       )}
       <Sidebar
         docs={sortedDocs}
+        folders={folders}
         activeId={active?.id ?? null}
         search={search}
         onSearch={setSearch}
         sort={sort}
         onSort={setSort}
-        theme={theme}
-        onToggleTheme={toggleTheme}
         onSelect={handleSelect}
-        onCreate={handleCreate}
+        onCreateInFolder={handleCreateInFolder}
         onDelete={handleDelete}
+        onMoveDoc={handleMoveDoc}
+        onCreateFolder={handleCreateFolder}
+        onRenameFolder={handleRenameFolder}
+        onDeleteFolder={handleDeleteFolder}
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
+        profile={profile}
+        onOpenAdmin={() => setAdminOpen(true)}
       />
       <main className="main">
         {active ? (
@@ -216,4 +247,25 @@ export default function App() {
       </main>
     </div>
   );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AuthGate />
+    </AuthProvider>
+  );
+}
+
+function AuthGate() {
+  const { session, profile, loading } = useAuth();
+
+  if (loading) {
+    return <div className="auth-loading"><span>Loading…</span></div>;
+  }
+
+  if (!session) return <LoginPage />;
+  if (!profile) return <LoginPage pendingAccess />;
+
+  return <AppInner />;
 }

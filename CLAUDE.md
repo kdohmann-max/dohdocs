@@ -19,6 +19,20 @@ DohDocs is a personal Markdown note-taking SPA. Rich text editing via TipTap, no
 - Custom TipTap marks (P1/P2/P3/comment) serialize as inline HTML `<span data-fmt="...">` tags — this is intentional and how they survive the markdown round-trip
 - `notesApiPlugin.ts` is still wired into `vite.config.ts` but the app no longer calls `/api/notes` — it's unused legacy from the dev-only file storage era
 
+## Formatting Selector
+
+The "F" button in the toolbar ribbon opens a sub-ribbon of named formatting options. This is an important feature — each option applies a custom TipTap mark to selected text and serializes as inline HTML in the stored Markdown.
+
+**Key files:**
+- `src/data/formattingSelectors.ts` — single source of truth; defines the `FORMATTING_SELECTORS` array (P1, P2, P3, Comment, Math)
+- `src/styles/formatting-selectors.css` — `.fmt-<id>` CSS classes, one per selector
+- `src/editor/FormatSelector.ts` — custom TipTap `Mark`; stores a `name` attribute and serializes as `<span data-fmt="<id>" class="fmt-<id>">` inline HTML so marks survive the Markdown round-trip
+- `public/formatting-selectors.md` — human-readable reference table of all selectors
+
+**Custom markdown syntax:** Each selector will have a custom MD shorthand (e.g. typing `p1` applies P1 formatting to the following text). The syntax spec lives in `formatting-selector-syntax.md`. **Read that file before making any syntax-related changes to `FormatSelector.ts`.**
+
+**Extension pattern:** To add a new selector — add a row to `FORMATTING_SELECTORS`, add a `.fmt-<id>` rule in the CSS, update `public/formatting-selectors.md`.
+
 ## Dev workflow
 
 - Requires `.env.local` with `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` to run

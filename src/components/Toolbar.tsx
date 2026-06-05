@@ -101,57 +101,31 @@ export function Toolbar({ editor }: Props) {
   return (
     <div className="toolbar">
       <div className="ribbon">
-        <label className="control">
-          <span className="control-label">Heading</span>
-          <select value={headingValue} onChange={(e) => setHeading(e.target.value)}>
-            <option value="p">Normal text</option>
-            {HEADING_LEVELS.map((l) => (
-              <option key={l} value={l}>
-                Heading {l}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label className="control">
-          <span className="control-label">List</span>
-          <select value={listValue} onChange={(e) => setList(e.target.value)}>
-            <option value="none">None</option>
-            <option value="bullet">Bulleted</option>
-            <option value="ordered">Numbered</option>
-            <option value="task">Task (checkbox)</option>
-          </select>
-        </label>
-
-        <button
-          className={`f-button ${showFormat ? "active" : ""}`}
-          onClick={() => setShowFormat((v) => !v)}
-          title="Formatting selectors"
-        >
-          F
-        </button>
-
-        <button
-          className="image-btn"
-          onClick={() => fileInput.current?.click()}
-          title="Insert image"
-        >
-          <svg width="16" height="16" aria-hidden="true">
-            <use href="/icons.svg#paperclip-icon" />
-          </svg>
-        </button>
-        <input
-          ref={fileInput}
-          type="file"
-          accept="image/*"
-          hidden
-          onChange={onPickImage}
-        />
-
-        <button className="archive-btn" onClick={() => archiveDone(editor)}>
-          Archive Done
-        </button>
-      </div>
+            <label className="control">
+              <span className="control-label">Heading</span>
+              <select value={headingValue} onChange={(e) => setHeading(e.target.value)}>
+                <option value="p">Normal text</option>
+                {HEADING_LEVELS.map((l) => (
+                  <option key={l} value={l}>Heading {l}</option>
+                ))}
+              </select>
+            </label>
+            <label className="control">
+              <span className="control-label">List</span>
+              <select value={listValue} onChange={(e) => setList(e.target.value)}>
+                <option value="none">None</option>
+                <option value="bullet">Bulleted</option>
+                <option value="ordered">Numbered</option>
+                <option value="task">Task (checkbox)</option>
+              </select>
+            </label>
+            <button className={`f-button ${showFormat ? "active" : ""}`} onClick={() => setShowFormat((v) => !v)} title="Formatting selectors">F</button>
+            <button className="image-btn" onClick={() => fileInput.current?.click()} title="Insert image" aria-label="Insert image">
+              <svg width="16" height="16" aria-hidden="true"><use href="/icons.svg#paperclip-icon" /></svg>
+            </button>
+            <input ref={fileInput} type="file" accept="image/*" hidden onChange={onPickImage} />
+            <button className="archive-btn" onClick={() => archiveDone(editor)}>Archive Done</button>
+          </div>
 
       {showFormat && (
         <div className="ribbon sub-ribbon">

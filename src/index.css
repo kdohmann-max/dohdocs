@@ -11,15 +11,6 @@
   color: var(--text);
 }
 
-:root[data-theme="dark"] {
-  --bg: #1e1f22;
-  --bg-alt: #16171a;
-  --border: #34363b;
-  --text: #e6e7e9;
-  --muted: #9aa0a6;
-  --accent: #6ea8ff;
-  --accent-soft: #2a3550;
-}
 
 * {
   box-sizing: border-box;

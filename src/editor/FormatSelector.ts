@@ -4,7 +4,8 @@
 // which is valid inline HTML inside Markdown, so documents round-trip through
 // the `.md` store without a custom syntax.
 
-import { Mark, mergeAttributes } from "@tiptap/core";
+import { Mark, mergeAttributes, InputRule } from "@tiptap/core";
+import { MARK_SELECTOR_IDS } from "../data/formattingSelectors";
 
 export interface FormatSelectorOptions {
   HTMLAttributes: Record<string, unknown>;
@@ -49,6 +50,32 @@ export const FormatSelector = Mark.create<FormatSelectorOptions>({
 
   renderHTML({ HTMLAttributes }) {
     return ["span", mergeAttributes(this.options.HTMLAttributes, HTMLAttributes), 0];
+  },
+
+  addInputRules() {
+    const markType = this.type;
+    return MARK_SELECTOR_IDS.map(
+      (id) =>
+        new InputRule({
+          find: new RegExp(`(?<!\\w)(${id}) $`),
+          handler: ({ state, range }) => {
+            const { tr } = state;
+            tr.delete(range.from, range.to);
+            tr.setStoredMarks([markType.create({ name: id })]);
+          },
+        })
+    );
+  },
+
+  addKeyboardShortcuts() {
+    return {
+      Enter: ({ editor }) => {
+        if (editor.isActive("formatSelector")) {
+          editor.commands.unsetMark(this.name);
+        }
+        return false;
+      },
+    };
   },
 
   addCommands() {

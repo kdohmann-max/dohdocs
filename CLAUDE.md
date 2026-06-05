@@ -35,15 +35,15 @@ The "F" button in the toolbar ribbon opens a sub-ribbon of named formatting opti
 
 ## Dev workflow
 
-- Requires `.env.local` with `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` to run
 - `npm run dev` — dev server at localhost:5173 (or 5174 if port taken)
 - `npm run build` — TypeScript check + Vite build to `dist/`
+- No `.env.local` required — Supabase credentials are hardcoded in `src/storage/db.ts` (anon key is public by design)
 
 ## Deploy workflow
 
 **NEVER run `git commit` or `git push` without explicit user approval for that specific deploy.** Always stop and ask first — a push triggers a Netlify auto-deploy and goes live immediately without further confirmation.
 
-- Netlify env vars `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` must be set in the Netlify dashboard for production builds to connect to the database
+- No environment variables need to be set in Netlify — credentials are baked into the build
 - Repo: `https://github.com/kdohmann-max/dohdocs`
 
 ## Supabase

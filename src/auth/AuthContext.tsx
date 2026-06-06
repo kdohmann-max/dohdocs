@@ -35,11 +35,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
+    // loadProfile is handled by onAuthStateChange (INITIAL_SESSION fires for existing sessions)
     supabase.auth.getSession()
       .then(({ data }) => {
-        setSession(data.session);
-        if (data.session) void loadProfile(data.session.user.id);
-        else setLoading(false);
+        if (!data.session) {
+          setSession(null);
+          setLoading(false);
+        }
       })
       .catch(() => setLoading(false));
 

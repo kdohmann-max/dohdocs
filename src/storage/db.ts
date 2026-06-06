@@ -91,7 +91,7 @@ function profileRowToProfile(row: ProfileRow): Profile {
 }
 
 function shareRowToShare(row: ShareRow): Share {
-  const p = row.profiles;
+  const p = row.profiles ?? { id: "", email: "Unknown", display_name: null, avatar_url: null, role: "member" as const, created_at: 0 };
   return {
     noteId: row.note_id, userId: row.user_id, permission: row.permission,
     grantedBy: row.granted_by, createdAt: row.created_at,
@@ -261,13 +261,13 @@ export async function removeShare(noteId: string, userId: string): Promise<void>
 export async function listAllShares(): Promise<{ noteId: string; noteTitle: string; userId: string; userEmail: string; permission: string }[]> {
   const { data, error } = await supabase
     .from("note_shares")
-    .select("note_id, permission, notes(title), profiles(email)")
+    .select("note_id, user_id, permission, notes(title), profiles(email)")
     .order("note_id");
   if (error) throw error;
-  return (data as unknown as { note_id: string; permission: string; notes: { title: string } | null; profiles: { email: string } | null }[]).map((r) => ({
+  return (data as unknown as { note_id: string; user_id: string; permission: string; notes: { title: string } | null; profiles: { email: string } | null }[]).map((r) => ({
     noteId: r.note_id,
     noteTitle: r.notes?.title ?? "Untitled",
-    userId: "",
+    userId: r.user_id,
     userEmail: r.profiles?.email ?? "",
     permission: r.permission,
   }));

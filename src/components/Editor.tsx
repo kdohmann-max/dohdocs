@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import * as Y from "yjs";
 import { useEditor, EditorContent, type Editor as TiptapEditor } from "@tiptap/react";
 import { buildExtensions } from "../editor/extensions";
@@ -35,34 +35,33 @@ interface Props {
 
 export function Editor({ doc, onChange, onOpenSidebar }: Props) {
   const { session, profile } = useAuth();
-  const saveTimer = useRef<number | undefined>(undefined);
-  const ydocRef = useRef<Y.Doc | null>(null);
-  const providerRef = useRef<SupabaseProvider | null>(null);
+  const saveTimerRef = useRef<number | undefined>(undefined);
   const [sourceMode, setSourceMode] = useState(false);
   const [source, setSource] = useState(doc.markdown);
   const [exportOpen, setExportOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [sharePanelOpen, setSharePanelOpen] = useState(false);
 
-  // Set up Y.Doc and SupabaseProvider per document
-  useEffect(() => {
+  // Y.Doc created synchronously so it is available to useEditor on first render
+  const ydoc = useMemo(() => {
     const ydoc = new Y.Doc();
-    ydocRef.current = ydoc;
+    if (doc.ydocState) Y.applyUpdate(ydoc, base64ToUint8(doc.ydocState));
+    return ydoc;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [doc.id]);
 
-    if (doc.ydocState) {
-      Y.applyUpdate(ydoc, base64ToUint8(doc.ydocState));
-    }
+  // Provider stored in state so useEditor re-runs once it is ready
+  const [provider, setProvider] = useState<SupabaseProvider | null>(null);
 
-    if (session) {
-      const color = stringToColor(session.user.id);
-      const name = profile?.displayName ?? profile?.email ?? "Anonymous";
-      providerRef.current = new SupabaseProvider(doc.id, ydoc, { name, color });
-    }
-
+  useEffect(() => {
+    if (!session) return;
+    const color = stringToColor(session.user.id);
+    const name = profile?.displayName ?? profile?.email ?? "Anonymous";
+    const p = new SupabaseProvider(doc.id, ydoc, { name, color });
+    setProvider(p);
     return () => {
-      providerRef.current?.destroy();
-      providerRef.current = null;
-      ydocRef.current = null;
+      p.destroy();
+      setProvider(null);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [doc.id]);
@@ -70,10 +69,10 @@ export function Editor({ doc, onChange, onOpenSidebar }: Props) {
   const editor = useEditor(
     {
       extensions: buildExtensions(
-        ydocRef.current && providerRef.current && profile
+        provider && profile
           ? {
-              ydoc: ydocRef.current,
-              provider: providerRef.current,
+              ydoc,
+              provider,
               user: {
                 name: profile.displayName ?? profile.email,
                 color: stringToColor(session!.user.id),
@@ -81,19 +80,18 @@ export function Editor({ doc, onChange, onOpenSidebar }: Props) {
             }
           : undefined
       ),
-      content: doc.ydocState ? undefined : doc.markdown,
+      // First render uses markdown; once provider is ready the second render uses Y.Doc
+      content: (!provider || !doc.ydocState) ? doc.markdown : undefined,
       onUpdate: ({ editor }) => {
-        window.clearTimeout(saveTimer.current);
-        saveTimer.current = window.setTimeout(() => {
+        window.clearTimeout(saveTimerRef.current);
+        saveTimerRef.current = window.setTimeout(() => {
           const md = getMarkdown(editor);
-          const ydocState = ydocRef.current
-            ? uint8ToBase64(Y.encodeStateAsUpdate(ydocRef.current))
-            : null;
+          const ydocState = uint8ToBase64(Y.encodeStateAsUpdate(ydoc));
           onChange(md, ydocState);
         }, 400);
       },
     },
-    [doc.id]
+    [doc.id, !!provider]
   );
 
   if (import.meta.env.DEV && editor) {
@@ -122,8 +120,8 @@ export function Editor({ doc, onChange, onOpenSidebar }: Props) {
 
   function onSourceInput(value: string) {
     setSource(value);
-    window.clearTimeout(saveTimer.current);
-    saveTimer.current = window.setTimeout(() => onChange(value, null), 400);
+    window.clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = window.setTimeout(() => onChange(value, null), 400);
   }
 
   async function shareRichText() {
@@ -177,9 +175,9 @@ export function Editor({ doc, onChange, onOpenSidebar }: Props) {
           </button>
         )}
 
-        {providerRef.current && (
+        {provider && (
           <CollaboratorAvatars
-            provider={providerRef.current}
+            provider={provider}
             currentUserId={session?.user.id ?? ""}
           />
         )}

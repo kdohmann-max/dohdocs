@@ -258,14 +258,14 @@ export default function App() {
 }
 
 function AuthGate() {
-  const { session, profile, loading } = useAuth();
+  const { session, profile, loading, signOut } = useAuth();
 
   if (loading) {
     return <div className="auth-loading"><span>Loading…</span></div>;
   }
 
   if (!session) return <LoginPage />;
-  if (!profile) return <LoginPage pendingAccess />;
+  if (!profile) return <LoginPage pendingAccess onSignOut={signOut} />;
 
   return <AppInner />;
 }

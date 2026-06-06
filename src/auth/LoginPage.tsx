@@ -5,7 +5,7 @@ function signIn(provider: "google" | "apple") {
   void supabase.auth.signInWithOAuth({ provider, options: { redirectTo } });
 }
 
-export function LoginPage({ pendingAccess }: { pendingAccess?: boolean }) {
+export function LoginPage({ pendingAccess, onSignOut }: { pendingAccess?: boolean; onSignOut?: () => void }) {
   return (
     <div className="login-page">
       <div className="login-card">
@@ -16,6 +16,11 @@ export function LoginPage({ pendingAccess }: { pendingAccess?: boolean }) {
           <div className="login-pending">
             <p>Your account isn't set up yet.</p>
             <p>Contact your admin to request access.</p>
+            {onSignOut && (
+              <button className="login-btn" style={{ marginTop: "1rem" }} onClick={onSignOut}>
+                Sign out and try a different account
+              </button>
+            )}
           </div>
         ) : (
           <div className="login-actions">

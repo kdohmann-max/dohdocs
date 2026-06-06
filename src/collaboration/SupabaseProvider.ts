@@ -32,6 +32,8 @@ export class SupabaseProvider {
   readonly doc: Y.Doc;
   readonly awareness: Awareness;
   private channel: RealtimeChannel;
+  private docUpdateHandler: (update: Uint8Array, origin: unknown) => void;
+  private awarenessUpdateHandler: (changes: { added: number[]; updated: number[]; removed: number[] }) => void;
 
   constructor(noteId: string, doc: Y.Doc, user: UserInfo) {
     this.doc = doc;
@@ -51,21 +53,25 @@ export class SupabaseProvider {
 
     this.channel.subscribe();
 
-    doc.on("update", (update: Uint8Array, origin: unknown) => {
+    this.docUpdateHandler = (update: Uint8Array, origin: unknown) => {
       if (origin === "remote") return;
       void this.channel.send({ type: "broadcast", event: "y-update", payload: { update: uint8ToBase64(update) } });
-    });
+    };
 
-    this.awareness.on("update", ({ added, updated, removed }: { added: number[]; updated: number[]; removed: number[] }) => {
+    this.awarenessUpdateHandler = ({ added, updated, removed }: { added: number[]; updated: number[]; removed: number[] }) => {
       const changed = [...added, ...updated, ...removed];
       const update = encodeAwarenessUpdate(this.awareness, changed);
       void this.channel.send({ type: "broadcast", event: "awareness", payload: { update: uint8ToBase64(update) } });
-    });
+    };
 
+    doc.on("update", this.docUpdateHandler);
+    this.awareness.on("update", this.awarenessUpdateHandler);
     this.awareness.setLocalStateField("user", user);
   }
 
   destroy() {
+    this.doc.off("update", this.docUpdateHandler);
+    this.awareness.off("update", this.awarenessUpdateHandler);
     this.awareness.setLocalState(null);
     this.awareness.destroy();
     void supabase.removeChannel(this.channel);

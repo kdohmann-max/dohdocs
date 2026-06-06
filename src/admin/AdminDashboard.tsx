@@ -22,20 +22,30 @@ export function AdminDashboard({ onClose }: Props) {
   const [inviting, setInviting] = useState(false);
   const [inviteError, setInviteError] = useState<string | null>(null);
   const [inviteSuccess, setInviteSuccess] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => { void loadAll(); }, []);
 
   async function loadAll() {
-    const [p, i, s] = await Promise.all([listProfiles(), listInvitations(), listAllShares()]);
-    setProfiles(p);
-    setInvitations(i);
-    setShares(s);
+    setLoadError(null);
+    try {
+      const [p, i, s] = await Promise.all([listProfiles(), listInvitations(), listAllShares()]);
+      setProfiles(p);
+      setInvitations(i);
+      setShares(s);
+    } catch (err) {
+      setLoadError(err instanceof Error ? err.message : String(err));
+    }
   }
 
   async function handleRoleToggle(user: Profile) {
     const next = user.role === "admin" ? "member" : "admin";
-    await updateProfileRole(user.id, next);
-    setProfiles((prev) => prev.map((p) => p.id === user.id ? { ...p, role: next } : p));
+    try {
+      await updateProfileRole(user.id, next);
+      setProfiles((prev) => prev.map((p) => p.id === user.id ? { ...p, role: next } : p));
+    } catch (err) {
+      setLoadError(err instanceof Error ? err.message : "Failed to update role");
+    }
   }
 
   async function handleInvite(e: React.FormEvent) {
@@ -85,6 +95,7 @@ export function AdminDashboard({ onClose }: Props) {
         </div>
 
         <div className="admin-body">
+          {loadError && <p className="invite-msg invite-msg--err">Load error: {loadError}</p>}
           {tab === "users" && (
             <table className="admin-table">
               <thead><tr><th>User</th><th>Role</th><th>Action</th></tr></thead>

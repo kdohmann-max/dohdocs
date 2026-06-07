@@ -158,8 +158,8 @@ export function AdminDashboard({ onClose }: Props) {
             <table className="admin-table">
               <thead><tr><th>Note</th><th>Shared with</th><th>Permission</th><th>Action</th></tr></thead>
               <tbody>
-                {shares.map((s, i) => (
-                  <tr key={i}>
+                {shares.map((s) => (
+                  <tr key={`${s.noteId}-${s.userId}`}>
                     <td>{s.noteTitle}</td>
                     <td>{s.userEmail}</td>
                     <td><span className={`admin-perm admin-perm--${s.permission}`}>{s.permission}</span></td>

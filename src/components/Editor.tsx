@@ -50,6 +50,11 @@ export function Editor({ doc, onChange, onOpenSidebar }: Props) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [doc.id]);
 
+  useEffect(() => {
+    return () => { ydoc.destroy(); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [doc.id]);
+
   // Provider stored in state so useEditor re-runs once it is ready
   const [provider, setProvider] = useState<SupabaseProvider | null>(null);
 
